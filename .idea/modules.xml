@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/amplify-android-extended.iml" filepath="$PROJECT_DIR$/.idea/modules/amplify-android-extended.iml" group="amplify-android-extended" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/extended/extended.iml" filepath="$PROJECT_DIR$/.idea/modules/extended/extended.iml" group="amplify-android-extended/extended" />
-    </modules>
-  </component>
-</project>
