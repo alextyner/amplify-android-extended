@@ -27,24 +27,22 @@ import java.util.Objects;
  * POJO for a 3rd party Amplify plugin.
  * @param <P> Plugin type.
  */
-public final class AmplifyExtension<P extends Plugin<?>> {
+public final class CategoryMetadata<P extends Plugin<?>> {
     private ExtendedCategoryConfiguration extendedCategoryConfiguration;
-    private Plugin<?> plugin;
+    //private Plugin<?> plugin;
     private ExtendedCategory<P> category;
     private String configFileName;
 
     /**
-     * Constructor for the {@link AmplifyExtension}.
+     * Constructor for the {@link CategoryMetadata}.
      * @param category An instance of the plugin's {@link Category}.
-     * @param plugin An instance of the {@link Plugin}.
      * @param configFileName Name of the configuration file for the plugin.
      * @param extendedCategoryConfiguration An empty instance of {@link ExtendedCategoryConfiguration}.
      */
-    public AmplifyExtension(ExtendedCategory<P> category, Plugin<?> plugin, String configFileName,
-                            ExtendedCategoryConfiguration extendedCategoryConfiguration) {
+    public CategoryMetadata(ExtendedCategory<P> category, ExtendedCategoryConfiguration extendedCategoryConfiguration,
+                            String configFileName) {
         this.extendedCategoryConfiguration = Objects.requireNonNull(extendedCategoryConfiguration);
         this.category = Objects.requireNonNull(category);
-        this.plugin = Objects.requireNonNull(plugin);
         this.configFileName = Objects.requireNonNull(configFileName);
     }
 
@@ -64,13 +62,13 @@ public final class AmplifyExtension<P extends Plugin<?>> {
         return extendedCategoryConfiguration;
     }
 
-    /**
-     * Get the {@link Plugin}.
-     * @return The {@link Plugin}.
-     */
-    public Plugin<?> getPlugin() {
-        return plugin;
-    }
+//    /**
+//     * Get the {@link Plugin}.
+//     * @return The {@link Plugin}.
+//     */
+//    public Plugin<?> getPlugin() {
+//        return plugin;
+//    }
 
     /**
      * Get the config file name.
@@ -86,7 +84,7 @@ public final class AmplifyExtension<P extends Plugin<?>> {
     @Override
     public int hashCode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            return Objects.hash(plugin, category, configFileName);
+            return Objects.hash(/*plugin, */category, configFileName);
         } else {
             return hashCode();
         }

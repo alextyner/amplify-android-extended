@@ -34,12 +34,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Like {@link com.amplifyframework.core.Amplify}, but for 3rd party plugins.
  *
  * Typical usage is as follows:
- * TODO: add usage pattern
+ * <pre>
+ *     {@code
+        AmplifyExtended.addCategory(new VideoCategory(), new VideoCategoryConfiguration(), "videoconfiguration");
+        AmplifyExtended.addPlugin(AmplifyExtended.category("video"), new AWSVideoPlugin());
+        AmplifyExtended.configure(getApplicationContext());
+ *     }
+ * </pre>
  */
 public final class AmplifyExtended {
 
-    private static Map<String, AmplifyExtension<? extends Plugin<?>>> extendedPlugins = new HashMap<>();
-    private static Map<String, ExtendedCategory<? extends Plugin<?>>> extendedCategories = new HashMap<>();
+    private static Map<String, CategoryMetadata<? extends Plugin<?>>> categoryData = new HashMap<>();
+    private static Map<String, ExtendedCategory<? extends Plugin<?>>> categories = new HashMap<>();
 
     // Used as a synchronization locking object. Set to true once configure() is complete.
     private static final AtomicBoolean CONFIGURATION_LOCK = new AtomicBoolean(false);
@@ -58,9 +64,23 @@ public final class AmplifyExtended {
      * Add a new category. It should extend {@link ExtendedCategory} and have a unique identifier defined by
      * {@link ExtendedCategoryTypeable#getExtendedCategoryType()}.
      * @param category A new {@link ExtendedCategory}.
+     * @param emptyConfiguration A new instance of {@link ExtendedCategoryConfiguration} specialized
+     *                           for your plugin.
+     * @param configurationFileName Name of the configuration file for your plugin.
+     * @param <P> Type of the category's plugins.
      */
-    public static void addCategory(ExtendedCategory<? extends Plugin<?>> category) {
-        extendedCategories.put(category.getExtendedCategoryType(), category);
+    @SuppressWarnings("unchecked")
+    public static <P extends Plugin<?>> void addCategory(@NonNull ExtendedCategory<? extends Plugin<?>> category,
+                                       @NonNull ExtendedCategoryConfiguration emptyConfiguration,
+                                       @NonNull String configurationFileName) {
+        if (categories.containsValue(category)) {
+            return;
+        }
+
+        categories.put(category.getExtendedCategoryType(), category);
+
+        categoryData.put(category.getExtendedCategoryType(), new CategoryMetadata<P>((ExtendedCategory<P>) category,
+                emptyConfiguration, configurationFileName));
     }
 
     /**
@@ -69,12 +89,12 @@ public final class AmplifyExtended {
      *                 you wish to remove.
      */
     public static void removeCategory(ExtendedCategory<? extends Plugin<?>> category) {
-        extendedCategories.remove(category.getExtendedCategoryType());
+        categories.remove(category.getExtendedCategoryType());
     }
 
     /**
      * Retrieve an {@link ExtendedCategory} with the given name. It must have been added using
-     * {@link AmplifyExtended#addCategory(ExtendedCategory)}.
+     * {@link AmplifyExtended#addCategory(ExtendedCategory, ExtendedCategoryConfiguration, String)}
      * @param categoryName Name of the desired category.
      * @param <C> Type of category you'd like the behaviors of.
      * @return The desired {@link ExtendedCategory}.
@@ -82,8 +102,10 @@ public final class AmplifyExtended {
     @SuppressWarnings("unchecked")
     public static <C extends ExtendedCategory<?>> C category(String categoryName) {
         try {
-            return (C) extendedCategories.get(categoryName);
+            return (C) categories.get(categoryName);
         } catch (ClassCastException noPlugin) {
+            return null;
+        } catch (NullPointerException noCategory) {
             return null;
         }
     }
@@ -92,42 +114,27 @@ public final class AmplifyExtended {
      * Add a new 3rd party plugin.
      * @param category A new {@link Category} instance for your plugin.
      * @param plugin A new conforming instance of {@link Plugin}.
-     * @param configurationFileName Name of the configuration file for your plugin.
-     * @param emptyConfiguration A new instance of {@link ExtendedCategoryConfiguration} specialized
-     *                           for your plugin.
      * @param <P> Plugin type.
      * @throws AmplifyException If the plugin and category types do not match.
      */
     public static <P extends Plugin<?>> void addPlugin(@NonNull final ExtendedCategory<P> category,
-                                                       @NonNull final P plugin,
-                                                       @NonNull String configurationFileName,
-                                                       @NonNull ExtendedCategoryConfiguration emptyConfiguration)
+                                                       @NonNull final P plugin)
             throws AmplifyException {
-        AmplifyExtended.extendedPlugins.put(plugin.getPluginKey(),
-                new AmplifyExtension<>(category, plugin, configurationFileName, emptyConfiguration));
         category.addPlugin(plugin);
     }
 
     /**
      * Remove a 3rd part plugin.
+     * @param category The category from which the plugin should be removed.
      * @param plugin An instance of the plugin with the same {@link Plugin#getPluginKey()} as a
      *               plugin you've added before.
      * @param <P> Plugin type.
      * @throws AmplifyException If the plugin and category types do not match.
      */
     @SuppressWarnings("unchecked")
-    public static <P extends Plugin<?>> void removePlugin(@NonNull final P plugin) throws AmplifyException {
-        try {
-            ((Category<P>) AmplifyExtended.extendedPlugins.get(plugin.getPluginKey()).getCategory())
-                    .removePlugin(plugin);
-        } catch (ClassCastException wrongCategory) {
-            throw new AmplifyException("A plugin was/is added to the wrong category.", wrongCategory,
-                    "Reconcile the plugin and category types.");
-        } catch (NullPointerException noPlugin) {
-            throw new AmplifyException("The requested plugin does not exist in the Amplify Extended registry.",
-                    noPlugin, "Add the plugin using AmplifyExtended.addPlugin(). Ensure the plugin key is correct.");
-        }
-        AmplifyExtended.extendedPlugins.remove(plugin.getPluginKey());
+    public static <P extends Plugin<?>> void removePlugin(@NonNull final ExtendedCategory<P> category,
+                                                          @NonNull final P plugin) {
+        category.removePlugin(plugin);
     }
 
     /**
@@ -147,19 +154,24 @@ public final class AmplifyExtended {
                 );
             }
 
-            for (AmplifyExtension<? extends Plugin<?>> extension : AmplifyExtended.extendedPlugins.values()) {
-                ExtendedCategoryConfiguration emptyConfiguration = extension.getExtendedCategoryConfiguration();
+            for (ExtendedCategory<?> category : categories.values()) {
+                CategoryMetadata<? extends Plugin<?>> metadata = categoryData.get(category.getExtendedCategoryType());
+
+                // Actually a subclass -- used to know the right type
+                ExtendedCategoryConfiguration emptyConfig = metadata.getExtendedCategoryConfiguration();
+
                 ExtendedCategoryConfiguration categoryConfiguration;
                 try {
                     categoryConfiguration = ExtendedConfiguration.read(context,
-                            extension.getConfigFileName(), emptyConfiguration);
+                            metadata.getConfigFileName(), emptyConfig);
                 } catch (AmplifyException exception) {
-                    Log.e("AmplifyExt", String.format("Plugin [%s] could not be configured.",
-                            extension.getPlugin().getPluginKey()), exception);
+                    Log.e("AmplifyExt", String.format("Configuration file [%s] could not be read.",
+                            metadata.getConfigFileName()), exception);
                     continue;
                 }
-                extension.getCategory().configure(categoryConfiguration, context);
-                beginInitialization(extension.getCategory(), context);
+
+                category.configure(categoryConfiguration, context);
+                beginInitialization(category, context);
             }
 
             CONFIGURATION_LOCK.set(true);

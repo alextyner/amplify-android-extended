@@ -48,8 +48,8 @@ The Amplify Framework supports Android API level 16 (Android 4.1) and above.
 ```groovy
 dependencies {
     implementation files('libs/extended-release.aar')
-    
-  	// Amplify Extended plugin dependencies
+
+    // Amplify Extended plugin dependencies
     // ... and other dependencies
 }
 ```
@@ -78,10 +78,15 @@ We'll assume that you've already initialized (or will initialize) your Amplify p
 
 ### Adding a new category
 
+**TODO: write and link to Video getting started example**
+
 Let's add a *Video* category. Adding a non-standard Amplify functionality category is easy. 
 
+1. We need to provide an empty configuration to know the right type to use. Here, it's a `VideoCategoryConfiguration`.
+2. Amplify Extended plugins get their own configuration file, typically. Video uses `videoconfiguration.json` (in the `app/src/main/res/raw` folder), so we provide that file's identifier.
+
 ```java
-AmplifyExtended.addCategory(new VideoCategory());
+AmplifyExtended.addCategory(new VideoCategory(), new VideoCategoryConfiguration(), "videoconfiguration");
 ```
 
 ### Registering a category plugin
@@ -92,15 +97,10 @@ We'll add an *AWS Video* plugin. What do we need?
 
 2. We'll also need an instance of the plugin, `AWSVideoPlugin` in this case.
 
-3. Amplify Extended plugins get their own configuration file, typically. Video uses `videoconfiguration.json` (in the `app/src/main/res/raw` folder), so we provide that file's identifier.
-
-4. And finally, AmplifyExtended needs a fresh configuration to populate. Here, it's a `VideoCategoryConfiguration`.
-
 ```java
 try {
-  
     // Add AWS Video plugin
-    AmplifyExtended.addPlugin(AmplifyExtended.category("video"), new AWSVideoPlugin(), "videoconfiguration", new VideoCategoryConfiguration());
+    AmplifyExtended.addPlugin(AmplifyExtended.category("video"), new AWSVideoPlugin());
   
     // Configure all Amplify Extended plugins
     AmplifyExtended.configure(getApplicationContext());
