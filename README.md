@@ -1,4 +1,4 @@
-# AWS Amplify: Extended
+# Amplify for Android, Extended
 
 An extensible platform for adding new <u>categories</u> of functionality to [AWS Amplify for Android](https://github.com/aws-amplify/amplify-android). Note that a functionality category is different from a plugin implementation.
 
@@ -17,8 +17,8 @@ An extensible platform for adding new <u>categories</u> of functionality to [AWS
 If you'd like to create a plugin that falls into one of the following categories:
 
 * **[Authentication](https://docs.amplify.aws/lib/auth/getting-started/q/platform/android)**
+* **[Storage](https://docs.amplify.aws/lib/storage/getting-started/q/platform/android)**
 
-- **[Storage](https://docs.amplify.aws/lib/storage/getting-started/q/platform/android)**
 - **[DataStore](https://docs.amplify.aws/lib/datastore/getting-started/q/platform/android)**
 - **[API
   (GraphQL)](https://docs.amplify.aws/lib/graphqlapi/getting-started/q/platform/android)**
@@ -33,28 +33,22 @@ This project is specifically aimed to allow *new* functionality categories.
 
 Consider the video streaming use case. [Amplify Video](https://github.com/awslabs/amplify-video) is a category and plugin for Amplify CLI not maintained by the AWS Amplify team. Integrating Amplify Video into your Android app can be accomplished with the [Video component and plugin](#broken-link) for Amplify Extended.
 
-## Platform Support
-
-The Amplify Framework supports Android API level 16 (Android 4.1) and above.
-
 
 
 ## Using Amplify Extended From Your App
 
-1. Download the latest release: [extended-release.aar](https://github.com/alextyner/amplify-android-extended/raw/master/release/extended-release.aar)
-2. Place the downloaded archive in the `app/libs` folder of your Android Studio project.
-3. Ammend your `app` module's `build.gradle` dependencies section:
+1. In your Android Studio project, amend your `app` module's `build.gradle` dependencies section:
 
 ```groovy
 dependencies {
-    implementation files('libs/extended-release.aar')
-
-    // Amplify Extended plugin dependencies
-    // ... and other dependencies
+    // ... other dependencies ...
+  
+    implementation 'com.amplifyframework:core:1.0.0'
+    implementation 'com.amplifyframework:extended:0.1.7'
 }
 ```
 
-4. Because Amplify Android uses Java 8 features, add a `compileOptions`
+2. Because Amplify Android uses Java 8 features, add a `compileOptions`
    block inside your app's `build.gradle` as below:
 
 ```gradle
@@ -66,7 +60,7 @@ android {
 }
 ```
 
-5. Run `gradle sync` and continue to the example section.
+3. Sync your gradle project when prompted or run `gradle sync` and continue to the example section.
 
 
 
@@ -78,39 +72,9 @@ We'll assume that you've already initialized (or will initialize) your Amplify p
 
 ### Adding a new category
 
-**TODO: write and link to Video getting started example**
+Using Amplify Extended categories is best illustrated with an example.
 
-Let's add a *Video* category. Adding a non-standard Amplify functionality category is easy. 
-
-1. We need to provide an empty configuration to know the right type to use. Here, it's a `VideoCategoryConfiguration`.
-2. Amplify Extended plugins get their own configuration file, typically. Video uses `videoconfiguration.json` (in the `app/src/main/res/raw` folder), so we provide that file's identifier.
-
-```java
-AmplifyExtended.addCategory(new VideoCategory(), new VideoCategoryConfiguration(), "videoconfiguration");
-```
-
-### Registering a category plugin
-
-We'll add an *AWS Video* plugin. What do we need?
-
-1. To add a plugin, we'll need that category from before. It can be accessed via `AmplifyExtended.category()` using the identifier defined within the category's implementation. In this case, it's `video`.
-
-2. We'll also need an instance of the plugin, `AWSVideoPlugin` in this case.
-
-```java
-try {
-    // Add AWS Video plugin
-    AmplifyExtended.addPlugin(AmplifyExtended.category("video"), new AWSVideoPlugin());
-  
-    // Configure all Amplify Extended plugins
-    AmplifyExtended.configure(getApplicationContext());
-  
-} catch (AmplifyException initErr) {
-    Log.d("AMPEXT", "Amplify Extended couldn't be configured.", initErr);
-}
-```
-
-5. Once all the Amplify Extended categories and plugins we want are added, configure them and initialize their state with `AmplifyExtended.configure()`.
+​	**See [Getting Started with Amplify Video for Android]().**
 
 ### Using a category plugin
 
@@ -134,8 +98,7 @@ This library is licensed under the [Apache 2.0 License](./LICENSE).
 
 ## Report a Bug
 
-We appreciate your feedback -- comments, questions, and bug reports. Please
-[submit a GitHub issue](#broken-link),
+We appreciate your feedback -- comments, questions, and bug reports. Please [submit a GitHub issue](/issues),
 and we'll get back to you.
 
 ## Contribute to the Project
