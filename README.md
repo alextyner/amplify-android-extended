@@ -16,9 +16,8 @@ An extensible platform for adding new <u>categories</u> of functionality to [AWS
 
 If you'd like to create a plugin that falls into one of the following categories:
 
-* **[Authentication](https://docs.amplify.aws/lib/auth/getting-started/q/platform/android)**
-* **[Storage](https://docs.amplify.aws/lib/storage/getting-started/q/platform/android)**
-
+- **[Authentication](https://docs.amplify.aws/lib/auth/getting-started/q/platform/android)**
+- **[Storage](https://docs.amplify.aws/lib/storage/getting-started/q/platform/android)**
 - **[DataStore](https://docs.amplify.aws/lib/datastore/getting-started/q/platform/android)**
 - **[API
   (GraphQL)](https://docs.amplify.aws/lib/graphqlapi/getting-started/q/platform/android)**
